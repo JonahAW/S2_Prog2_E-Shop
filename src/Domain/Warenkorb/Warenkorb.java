@@ -1,8 +1,9 @@
 package Domain.Warenkorb;
 
 import java.util.HashMap;
+import java.util.Map.Entry;
 
-import DatenObjekte.Artikel;
+import Domain.Artikel.Artikel;
 
 /**
  * Der direkte Warenkorb.
@@ -12,19 +13,30 @@ class Warenkorb {/* "protected" */
   protected HashMap<Artikel, Integer> inhalt;
 
   /**
-   * Warenkorb Constructor
+   * neuer Warenkorb
    */
   protected Warenkorb() {
     this.inhalt = new HashMap<Artikel, Integer>();
   }
 
+  /**
+   * exitierender Warenkorb
+   */
+  protected Warenkorb(HashMap<Artikel, Integer> exitierenderWarenkorb) {
+    this.inhalt = exitierenderWarenkorb;
+  }
+
+  protected void clear() {
+    inhalt.clear();
+  }
+
   @Override
   public String toString() {
 
-    String str = "Artikelnr\tName\tBestand\tPreis\n";
+    String str = "\tName\tBestand\tPreis\n";
 
     if (!inhalt.isEmpty())
-      for (var entry : inhalt.entrySet()) {
+      for (Entry<Artikel, Integer> entry : inhalt.entrySet()) {
         str += "\t" + entry.getKey() + "\t" + entry.getValue() + "\n";
       }
     else
