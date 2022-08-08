@@ -28,6 +28,71 @@ public interface EshopInterface {
 
   // #region Blanka
 
+  /**
+   * gibt Warenkorb Inhalt zurück
+   * 
+   * @return HashMap<Artikel, Integer>
+   */
+  public HashMap<Artikel, Integer> WK_getInhalt();
+
+  /**
+   * gibt warenkorb
+   * 
+   * @return
+   */
+  public Object WV_getWarenkorb();
+
+  /**
+   * erstellt einen neuen Eintrag oder ändert einen vorhandenen
+   * 
+   * @param artikel artikel object
+   * @param integer artikel Stückzahl
+   */
+  public void WV_setArtikel(Artikel artikel, int integer);
+
+  /**
+   * entfernt einen artikel aus der map
+   * 
+   * @param artikel artikel zu entfernen
+   */
+  public void WV_removeArtikel(Artikel artikel);
+
+  /**
+   * löscht den gesamten inhalt des Warenkorbes
+   */
+  public void WV_clearAll();
+
+  /**
+   * Kauft alle artikel im Warenkorb.
+   * Aktualisiert bestand für alle
+   * und erstellt entspechende events
+   * 
+   * @param userHash Benutzer Identifikator der die funtion ausführt
+   * @return rechnung
+   * @throws ExceptionArtikelCollection
+   */
+  public Rechnung WV_kaufen(byte[] userHash) throws ExceptionArtikelCollection;
+
+  public double WV_getSumme();
+
+  /**
+   * create new user
+   * 
+   * @param name
+   * @param username
+   * @param password
+   * @param email
+   * @param address
+   * @throws ExceptionBenutzerNameUngültig
+   */
+  public void BV_kundeHinzufügen(String name, String username, String password, String email, String address)
+      throws ExceptionBenutzerNameUngültig;
+
+  public void BV_mitarbeiterHinzufügen(String name, String username, String password)
+      throws ExceptionBenutzerNameUngültig;
+
+  public Vector<Benutzer> BV_getAllNutzer();
+
   // #endregion Blanka
   // #region Jonah
 
@@ -45,27 +110,6 @@ public interface EshopInterface {
    */
   public Artikel AV_addArtikel(byte[] userHash, String name, int bestand, double einzelpreis, int packungsInhalt)
       throws ExceptionArtikelExistiertBereits, ExceptionArtikelKonnteNichtErstelltWerden;
-
-  /**
-   * del artikel
-   * 
-   * @param userHash
-   * @param name
-   * @throws ExceptionArtikelKonnteNichtGelöschtWerden
-   */
-  public void AV_deleteArtikel(byte[] userHash, String name) throws ExceptionArtikelKonnteNichtGelöschtWerden;
-
-  /**
-   * set artikel data
-   * 
-   * @param userHash  userHash
-   * @param artikel   artikel obj
-   * @param neuerName artikel neuer name
-   * @throws ExceptionArtikelNameExistiertBereits
-   * @throws ExceptionArtikelNameUngültig
-   */
-  public void AV_setArtikel(byte[] userHash, Artikel artikel, String neuerName)
-      throws ExceptionArtikelNameExistiertBereits, ExceptionArtikelNameUngültig;
 
   /**
    * set artikel data bestand
@@ -176,24 +220,6 @@ public interface EshopInterface {
   // #endregion Malte
 
   /**
-   * create new user
-   * 
-   * @param name
-   * @param username
-   * @param password
-   * @param email
-   * @param address
-   * @throws ExceptionBenutzerNameUngültig
-   */
-  public void BV_kundeHinzufügen(String name, String username, String password, String email, String address)
-      throws ExceptionBenutzerNameUngültig;
-
-  public void BV_mitarbeiterHinzufügen(String name, String username, String password)
-      throws ExceptionBenutzerNameUngültig;
-
-  public Vector<Benutzer> BV_getAllNutzer();
-
-  /**
    * login to user profile
    * 
    * @param callingUI calling user Interface, use "this"
@@ -210,53 +236,6 @@ public interface EshopInterface {
    * @param callingUI calling user Interface, use "this"
    */
   public void logout(UserInterface callingUI);
-
-  /**
-   * gibt Warenkorb Inhalt zurück
-   * 
-   * @return HashMap<Artikel, Integer>
-   */
-  public HashMap<Artikel, Integer> WK_getInhalt();
-
-  /**
-   * gibt warenkorb
-   * 
-   * @return
-   */
-  public Object WV_getWarenkorb();
-
-  /**
-   * erstellt einen neuen Eintrag oder ändert einen vorhandenen
-   * 
-   * @param artikel artikel object
-   * @param integer artikel Stückzahl
-   */
-  public void WV_setArtikel(Artikel artikel, int integer);
-
-  /**
-   * entfernt einen artikel aus der map
-   * 
-   * @param artikel artikel zu entfernen
-   */
-  public void WV_removeArtikel(Artikel artikel);
-
-  /**
-   * löscht den gesamten inhalt des Warenkorbes
-   */
-  public void WV_clearAll();
-
-  /**
-   * Kauft alle artikel im Warenkorb.
-   * Aktualisiert bestand für alle
-   * und erstellt entspechende events
-   * 
-   * @param userHash Benutzer Identifikator der die funtion ausführt
-   * @return rechnung
-   * @throws ExceptionArtikelCollection
-   */
-  public Rechnung WV_kaufen(byte[] userHash) throws ExceptionArtikelCollection;
-
-  public double WV_getSumme();
 
   /**
    * find Artikel by name in artikelListe
@@ -301,6 +280,11 @@ public interface EshopInterface {
    */
   public void AV_sortListPreis(Vector<Artikel> artikelList, boolean reverse);
 
+  public void AV_deleteArtikel(byte[] userHash, String name) throws ExceptionArtikelKonnteNichtGelöschtWerden;
+
+  public void AV_setArtikel(byte[] userHash, Artikel artikel, String neuerName)
+      throws ExceptionArtikelNameExistiertBereits, ExceptionArtikelNameUngültig;
+
   /**
    * displays Ereignis Log in short
    * 
@@ -329,7 +313,17 @@ public interface EshopInterface {
   public static enum REQUESTS {
     QUIT("quit"),
     REPLY("reply"),
-    UI("ui");
+    UI("ui"),
+    WVSETARTIKEL("WV_setArtikel"),
+    WKGETINHALT("WK_getInhalt"),
+    WVGETWARENKORB("WV_getWarenkorb"),
+    WVREMOVEARTIKEL("WV_removeArtikel"),
+    WVCLEARALL("WV_clearAll"),
+    WVKAUFEN("WV_kaufen"),
+    WVGETSUMME("WV_getSumme"),
+    BVKUNDEHINZUFÜGEN("BV_kundeHinzufügen"),
+    BVMITARBEITERHINZUFÜGEN("BV_mitarbeiterHinzufügen"),
+    BVGETALLENUTZER("BV_getAllNutzer");
 
     private final String key;
     /**
