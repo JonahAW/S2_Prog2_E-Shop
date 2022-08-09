@@ -354,8 +354,6 @@ public class SocketProcessor extends UserSession {
           e.printStackTrace();
         }
 
-        System.out.println("ARTIKEL AUSGABE ENDE");
-
         break;
 
       case AVSORTLISTPREIS:
@@ -435,8 +433,8 @@ public class SocketProcessor extends UserSession {
         break;
       case EVGETEREIGNIS:
         try {
-           oos.writeObject(eshop.EV_getEreignis(Integer.parseInt(arguments[0])));
-           oos.flush();
+          oos.writeObject(eshop.EV_getEreignis(Integer.parseInt(arguments[0])));
+          oos.flush();
         } catch (NumberFormatException e) {
         } catch (ExceptionEreignisNichtGefunden e) {
           sendException(e);
