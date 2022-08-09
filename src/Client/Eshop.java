@@ -433,10 +433,8 @@ public class Eshop implements EshopInterface {
   public String AV_ArtikelAusgeben(Vector<Artikel> list, boolean detailed, String leereNachicht) {
     try {
       out.println(REQUESTS.AVARTIKELAUSGEBEN + sp + detailed + sp + leereNachicht);
-
       oos.writeObject(list);
       oos.flush();
-
       return in.readLine().replace("/n", "\n");
     } catch (IOException e) {
       // TODO Auto-generated catch block
