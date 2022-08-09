@@ -292,62 +292,35 @@ public class SocketProcessor extends UserSession {
         break;
       case AVSETARTIKELNAME:
         try {
-          eshop.AV_setArtikel(arguments[0].getBytes(), eshop.AV_findArtikelByName(arguments[1]), arguments[2]);
-        } catch (ExceptionArtikelNameExistiertBereits | ExceptionArtikelNameUngültig
-            | ExceptionArtikelNichtGefunden e) {
-          /*
-           * out.println("fehler");
-           * try {
-           * oos.writeObject(e);
-           * } catch (IOException e1) {
-           * // TODO Auto-generated catch block
-           * e1.printStackTrace();
-           * }
-           */
+          eshop.AV_setArtikel(this.userHash, eshop.AV_findArtikelByName(arguments[0]), arguments[1]);
+          sendAllClear();
+        } catch (ExceptionArtikelNameExistiertBereits | ExceptionArtikelNameUngültig e) {
+          sendException(e);
+          out.println(e.getClass().getSimpleName());
+        } catch (ExceptionArtikelNichtGefunden e) {
+          e.printStackTrace();
         }
         break;
       case AVSETARTIKELBESTAND:
         try {
-          eshop.AV_setArtikel(arguments[0].getBytes(), eshop.AV_findArtikelByName(arguments[1]),
-              Integer.parseInt(arguments[2]));
+          eshop.AV_setArtikel(this.userHash, arguments[0],
+              Integer.parseInt(arguments[1]));
         } catch (NumberFormatException | ExceptionArtikelUngültigerBestand | ExceptionArtikelNichtGefunden e) {
           e.printStackTrace();
         }
-        break;
-      case AVSETARTIKELDATABESTAND:
-        try {
-          eshop.AV_setArtikel(arguments[0].getBytes(), arguments[1], Integer.parseInt(arguments[2]));
-        } catch (NumberFormatException | ExceptionArtikelNichtGefunden | ExceptionArtikelUngültigerBestand e) {
-          e.printStackTrace();
-        }
+
         break;
       case AVSETARTIKELPREIS:
         try {
-          eshop.AV_setArtikel(arguments[0].getBytes(), eshop.AV_findArtikelByName(arguments[1]),
-              Double.parseDouble(arguments[2]));
-        } catch (NumberFormatException | ExceptionArtikelNichtGefunden e) {
-          e.printStackTrace();
-        }
-        break;
-      case AVSETARTIKELDATAPREIS:
-        try {
-          eshop.AV_setArtikel(arguments[0].getBytes(), arguments[1], Double.parseDouble(arguments[2]));
+          eshop.AV_setArtikel(this.userHash, arguments[0], Double.parseDouble(arguments[1]));
         } catch (NumberFormatException | ExceptionArtikelNichtGefunden e) {
           e.printStackTrace();
         }
         break;
       case AVSETARTIKELALL:
         try {
-          eshop.AV_setArtikel(arguments[0].getBytes(), eshop.AV_findArtikelByName(arguments[1]), arguments[2],
-              Integer.parseInt(arguments[3]), Double.parseDouble(arguments[4]));
-        } catch (NumberFormatException | ExceptionArtikelNichtGefunden | ExceptionArtikelUngültigerBestand e) {
-          sendException(e);
-        }
-        break;
-      case AVSETARTIKELDATAALL:
-        try {
-          eshop.AV_setArtikel(arguments[0].getBytes(), arguments[1], arguments[2], Integer.parseInt(arguments[3]),
-              Double.parseDouble(arguments[4]));
+          eshop.AV_setArtikel(this.userHash, arguments[0], arguments[1], Integer.parseInt(arguments[2]),
+              Double.parseDouble(arguments[3]));
         } catch (NumberFormatException | ExceptionArtikelNichtGefunden | ExceptionArtikelUngültigerBestand e) {
           sendException(e);
         }
@@ -360,7 +333,7 @@ public class SocketProcessor extends UserSession {
           oos.writeObject(artikel2);
         } catch (NumberFormatException | ExceptionArtikelExistiertBereits
             | ExceptionArtikelKonnteNichtErstelltWerden e) {
-              sendException(e);
+          sendException(e);
         } catch (IOException e) {
           e.printStackTrace();
         }
@@ -491,13 +464,13 @@ public class SocketProcessor extends UserSession {
     }
 
     return true;
-
   }
 
   private void sendException(Exception e) {
     out.println(CLIENT_FEEDBACK.FEHLER);
     try {
       oos.writeObject(e);
+      oos.flush();
     } catch (IOException e1) {
       e1.printStackTrace();
     }

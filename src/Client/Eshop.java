@@ -340,30 +340,46 @@ public class Eshop implements EshopInterface {
   @Override
   public void AV_setArtikel(byte[] userHash, Artikel artikel, String neuerName)
       throws ExceptionArtikelNameExistiertBereits, ExceptionArtikelNameUngültig {
-    out.println(REQUESTS.AVSETARTIKELNAME + sp + userHash + sp + artikel.getName() + sp + neuerName);
+    out.println(REQUESTS.AVSETARTIKELNAME + sp + artikel.getName() + sp + neuerName);
+
+    Exception exception = waitForException();
+
+    if (exception != null) {
+      try {
+        switch (in.readLine()) {
+          case "ExceptionArtikelNameExistiertBereits":
+            throw (ExceptionArtikelNameExistiertBereits) exception;
+          case "ExceptionArtikelNameUngültig":
+            throw (ExceptionArtikelNameUngültig) exception;
+        }
+      } catch (IOException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
+    }
   }
 
   @Override
   public void AV_setArtikel(byte[] userHash, Artikel artikel, int bestand) throws ExceptionArtikelUngültigerBestand {
-    out.println(REQUESTS.AVSETARTIKELDATABESTAND + sp + userHash + sp + artikel.getName() + bestand);
+    out.println(REQUESTS.AVSETARTIKELBESTAND + sp + artikel.getName() + bestand);
   }
 
   @Override
   public void AV_setArtikel(byte[] userHash, String name, int bestand)
       throws ExceptionArtikelNichtGefunden, ExceptionArtikelUngültigerBestand {
-    out.println(REQUESTS.AVSETARTIKELDATABESTAND + sp + userHash + sp + name + bestand);
+    out.println(REQUESTS.AVSETARTIKELBESTAND + sp + name + bestand);
 
   }
 
   @Override
   public void AV_setArtikel(byte[] userHash, Artikel artikel, double preis) {
-    out.println(REQUESTS.AVSETARTIKELPREIS + sp + userHash + sp + artikel.getName() + sp + preis);
+    out.println(REQUESTS.AVSETARTIKELPREIS + sp + artikel.getName() + sp + preis);
 
   }
 
   @Override
   public void AV_setArtikel(byte[] userHash, String name, double preis) throws ExceptionArtikelNichtGefunden {
-    out.println(REQUESTS.AVSETARTIKELDATAPREIS + sp + userHash + sp + name + sp + preis);
+    out.println(REQUESTS.AVSETARTIKELPREIS + sp + name + sp + preis);
 
   }
 
@@ -371,13 +387,13 @@ public class Eshop implements EshopInterface {
   public void AV_setArtikel(byte[] userHash, Artikel artikel, String neuerName, int bestand, double preis)
       throws ExceptionArtikelNichtGefunden, ExceptionArtikelUngültigerBestand {
     out.println(
-        REQUESTS.AVSETARTIKELALL + sp + userHash + sp + artikel.getName() + sp + neuerName + sp + bestand + sp + preis);
+        REQUESTS.AVSETARTIKELALL + sp + artikel.getName() + sp + neuerName + sp + bestand + sp + preis);
   }
 
   @Override
   public void AV_setArtikel(byte[] userHash, String name, String neuerName, int bestand, double preis)
       throws ExceptionArtikelNichtGefunden, ExceptionArtikelUngültigerBestand {
-    out.println(REQUESTS.AVSETARTIKELDATAALL + sp + userHash + sp + name + sp + neuerName + sp + bestand + sp + preis);
+    out.println(REQUESTS.AVSETARTIKELALL + sp + name + sp + neuerName + sp + bestand + sp + preis);
 
   }
 
@@ -412,9 +428,6 @@ public class Eshop implements EshopInterface {
     }
     return alleArtikel;
   }
-
-  // #endregion impl
-  // #region unimplemented
 
   @Override
   public String AV_ArtikelAusgeben(Vector<Artikel> list, boolean detailed, String leereNachicht) {
@@ -528,8 +541,6 @@ public class Eshop implements EshopInterface {
     return ordnung;
   }
 
-  ////////////////////////////////////////////////////////////////////////
-
   @Override
   public String EV_logDisplay() {
     out.println(REQUESTS.EVLOGDISPLAY);
@@ -547,10 +558,12 @@ public class Eshop implements EshopInterface {
     Ereignis ereignis = null;
     out.println(REQUESTS.EVGETEREIGNIS + sp + ereignisNummer);
     Exception e = waitForException();
-    if(!(e==null)){throw (ExceptionEreignisNichtGefunden)e;}
+    if (!(e == null)) {
+      throw (ExceptionEreignisNichtGefunden) e;
+    }
     try {
-      ereignis = (Ereignis)ois.readObject();
-    } catch (ClassNotFoundException|IOException e2) {
+      ereignis = (Ereignis) ois.readObject();
+    } catch (ClassNotFoundException | IOException e2) {
       e.printStackTrace();
     }
     return ereignis;
