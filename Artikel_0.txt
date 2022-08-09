@@ -5,4 +5,5 @@
 5;Blau Augiger Weisser Drache;1;9.9999999E7
 6;Zweikoepfiger Blau Augiger Weisser Drache;0;1.0E20;2
 7;E;500;1.0;5
-0;Ring der Macht;1;1.0
+0;Ring der Macht;1;1.0E8
+0;M6Ms;100;3.5;150

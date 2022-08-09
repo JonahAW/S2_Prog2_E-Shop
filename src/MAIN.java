@@ -1,6 +1,6 @@
 
-// import Domain.Eshop;
-import Client.Eshop;
+import Domain.Eshop;
+// import Client.Eshop;
 import UserInterface.UserInterface;
 import UserInterface.CUI;
 import UserInterface.GUI.GUI;
