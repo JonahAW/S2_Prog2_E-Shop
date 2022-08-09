@@ -12,7 +12,6 @@ import java.util.Vector;
 
 import Domain.Artikel.Artikel;
 import Domain.BenutzerObjekte.Benutzer;
-import Domain.BenutzerObjekte.Benutzerverwaltung.BeutzerType;
 import Domain.EreignisLog.Ereignisse.Ereignis;
 import Domain.Search.SuchOrdnung;
 import Domain.Warenkorb.Rechnung;
@@ -27,9 +26,7 @@ import Exceptions.Artikel.ExceptionArtikelNichtGefunden;
 import Exceptions.Artikel.ExceptionArtikelUngültigerBestand;
 import Exceptions.Benutzer.ExceptionBenutzerNameUngültig;
 import Exceptions.Ereignis.ExceptionEreignisNichtGefunden;
-import UserInterface.CUI;
-import UserInterface.UserInterface;
-import UserInterface.GUI.GUI;
+import UserInterface.UserSession;
 import common.EshopInterface;
 
 public class Eshop implements EshopInterface {
@@ -50,7 +47,6 @@ public class Eshop implements EshopInterface {
       out = new PrintStream(socket.getOutputStream());
       oos = new ObjectOutputStream(socket.getOutputStream());
       ois = new ObjectInputStream(socket.getInputStream());
-      
 
     } catch (IOException e) {
       System.err.println("CLIENT - ERROR - on socket stream create: " + e);
@@ -119,33 +115,60 @@ public class Eshop implements EshopInterface {
   }
 
   // #endregion networking
+  // #region usefull
 
+  private String[] inLineAndSplit() {
+
+    try {
+      return REQUESTS.split(in.readLine());
+
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    return null;
+  }
+
+  // #endregion
   // #region implement
 
   @Override
   public void BV_kundeHinzufügen(String name, String username, String password, String email, String address)
       throws ExceptionBenutzerNameUngültig {
-      String sp = REQUESTS.splitter;
-      out.println(REQUESTS.BVKUNDEHINZUFÜGEN + sp + name + sp + username + password + sp + email + sp + address);
+    String sp = REQUESTS.splitter;
+    out.println(REQUESTS.BVKUNDEHINZUFÜGEN + sp + name + sp + username + password + sp + email + sp + address);
+    String back = "";
+    try {
+      back = in.readLine();
+    } catch (IOException e1) {
+      e1.printStackTrace();
+    }
+    if (back.equals("fehler")) {
       try {
-        ExceptionBenutzerNameUngültig e = (ExceptionBenutzerNameUngültig)ois.readObject();
+        ExceptionBenutzerNameUngültig e = (ExceptionBenutzerNameUngültig) ois.readObject();
         throw e;
       } catch (ClassNotFoundException | IOException e) {
       }
+    }
   }
 
   @Override
   public void BV_mitarbeiterHinzufügen(String name, String username, String password)
       throws ExceptionBenutzerNameUngültig {
-      String sp = REQUESTS.splitter;
-      out.println(REQUESTS.BVMITARBEITERHINZUFÜGEN + sp + name + sp + username + sp + password);
+    String sp = REQUESTS.splitter;
+    out.println(REQUESTS.BVMITARBEITERHINZUFÜGEN + sp + name + sp + username + sp + password);
+    String back = "";
+    try {
+      back = in.readLine();
+    } catch (IOException e1) {
+      e1.printStackTrace();
+    }
+    if (back.equals("fehler")) {
       try {
-        ExceptionBenutzerNameUngültig e = (ExceptionBenutzerNameUngültig)ois.readObject();
+        ExceptionBenutzerNameUngültig e = (ExceptionBenutzerNameUngültig) ois.readObject();
         throw e;
       } catch (ClassNotFoundException | IOException e) {
       }
-    // TODO Auto-generated method stub
-
+    }
   }
 
   @Override
@@ -154,22 +177,41 @@ public class Eshop implements EshopInterface {
     out.println(REQUESTS.BVGETALLENUTZER);
     try {
       nutzer = (Vector<Benutzer>) ois.readObject();
-    } catch (ClassNotFoundException|IOException e) {
+    } catch (ClassNotFoundException | IOException e) {
       e.printStackTrace();
     }
     return nutzer;
   }
 
   @Override
-  public BeutzerType login(UserInterface callingUI, String username, String password) {
-    // TODO Auto-generated method stub
-    return null;
+  public BenutzerType login(UserSession callingUI, String username, String password) {
+    String sp = REQUESTS.splitter;
+    String outString = REQUESTS.LOGIN + sp + username + sp + password;
+    System.out.println("log - outString: " + outString);
+    out.println(outString);
+
+    BenutzerType userType = BenutzerType.NONE;
+
+    try {
+      userType = BenutzerType.get(in.readLine());
+
+      if (userType != BenutzerType.NONE) {
+        callingUI.userHash = in.readLine().getBytes();
+      }
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+
+    return userType;
   }
 
   @Override
-  public void logout(UserInterface callingUI) {
-    // TODO Auto-generated method stub
+  public void logout(UserSession callingUI) {
 
+    out.println(REQUESTS.LOGOUT);
+
+    byte arr[] = {};
+    callingUI.userHash = arr;
   }
 
   @Override
@@ -177,7 +219,7 @@ public class Eshop implements EshopInterface {
     HashMap<Artikel, Integer> inhalt = new HashMap<Artikel, Integer>();
     out.println(REQUESTS.WKGETINHALT);
     try {
-      inhalt = (HashMap<Artikel, Integer>)ois.readObject();
+      inhalt = (HashMap<Artikel, Integer>) ois.readObject();
     } catch (ClassNotFoundException | IOException e) {
       e.printStackTrace();
     }
@@ -189,7 +231,7 @@ public class Eshop implements EshopInterface {
     Warenkorb korb = null;
     out.println(REQUESTS.WVGETWARENKORB);
     try {
-      korb = (Warenkorb)ois.readObject();
+      korb = (Warenkorb) ois.readObject();
     } catch (ClassNotFoundException | IOException e) {
       e.printStackTrace();
     }
@@ -213,16 +255,23 @@ public class Eshop implements EshopInterface {
 
   @Override
   public Rechnung WV_kaufen(byte[] userHash) throws ExceptionArtikelCollection {
-    // TODO Auto-generated method stub
+    out.println(REQUESTS.WVKAUFEN + sp + userHash);
+    try {
+      if (in.readLine().equals("fehler")) {
+        throw (ExceptionArtikelCollection) ois.readObject();
+      }
+    } catch (ClassNotFoundException | IOException e) {
+      e.printStackTrace();
+    }
     return null;
   }
 
   @Override
   public double WV_getSumme() {
     out.println(REQUESTS.WVGETSUMME);
-    double d = 0.0; 
+    double d = 0.0;
     try {
-       d = Double.parseDouble(in.readLine());
+      d = Double.parseDouble(in.readLine());
     } catch (NumberFormatException | IOException e) {
       // TODO Auto-generated catch block
       e.printStackTrace();
@@ -233,73 +282,112 @@ public class Eshop implements EshopInterface {
   @Override
   public Artikel AV_addArtikel(byte[] userHash, String name, int bestand, double einzelpreis, int packungsInhalt)
       throws ExceptionArtikelExistiertBereits, ExceptionArtikelKonnteNichtErstelltWerden {
-    // TODO Auto-generated method stub
+    Artikel artikel = null;
+    out.println(REQUESTS.AVADDARTIKEL + sp + userHash + name + bestand + einzelpreis + sp + packungsInhalt);
+    try {
+      artikel = (Artikel) ois.readObject();
+    } catch (ClassNotFoundException | IOException e) {
+      e.printStackTrace();
+    }
     return null;
   }
 
   @Override
   public void AV_deleteArtikel(byte[] userHash, String name) throws ExceptionArtikelKonnteNichtGelöschtWerden {
-    // TODO Auto-generated method stub
-
+    out.println(REQUESTS.AVDELETEARTIKEL + sp + userHash + sp + name);
+    try {
+      if (in.readLine().equals("fehler")) {
+        throw (ExceptionArtikelKonnteNichtGelöschtWerden) ois.readObject();
+      }
+    } catch (ClassNotFoundException | IOException e) {
+      e.printStackTrace();
+    }
   }
 
   @Override
   public void AV_setArtikel(byte[] userHash, Artikel artikel, String neuerName)
       throws ExceptionArtikelNameExistiertBereits, ExceptionArtikelNameUngültig {
-    // TODO Auto-generated method stub
-
+    out.println(REQUESTS.AVSETARTIKELNAME + sp + userHash + sp + artikel.getName() + sp + neuerName);
   }
 
   @Override
   public void AV_setArtikel(byte[] userHash, Artikel artikel, int bestand) throws ExceptionArtikelUngültigerBestand {
-    // TODO Auto-generated method stub
-
+    out.println(REQUESTS.AVSETARTIKELDATABESTAND + sp + userHash + sp + artikel.getName() + bestand);
   }
 
   @Override
   public void AV_setArtikel(byte[] userHash, String name, int bestand)
       throws ExceptionArtikelNichtGefunden, ExceptionArtikelUngültigerBestand {
-    // TODO Auto-generated method stub
+    out.println(REQUESTS.AVSETARTIKELDATABESTAND + sp + userHash + sp + name + bestand);
 
   }
 
   @Override
   public void AV_setArtikel(byte[] userHash, Artikel artikel, double preis) {
-    // TODO Auto-generated method stub
+    out.println(REQUESTS.AVSETARTIKELPREIS + sp + userHash + sp + artikel.getName() + sp + preis);
 
   }
 
   @Override
   public void AV_setArtikel(byte[] userHash, String name, double preis) throws ExceptionArtikelNichtGefunden {
-    // TODO Auto-generated method stub
+    out.println(REQUESTS.AVSETARTIKELDATAPREIS + sp + userHash + sp + name + sp + preis);
 
   }
 
   @Override
   public void AV_setArtikel(byte[] userHash, Artikel artikel, String neuerName, int bestand, double preis)
       throws ExceptionArtikelNichtGefunden, ExceptionArtikelUngültigerBestand {
-    // TODO Auto-generated method stub
-
+    out.println(
+        REQUESTS.AVSETARTIKELALL + sp + userHash + sp + artikel.getName() + sp + neuerName + sp + bestand + sp + preis);
   }
 
   @Override
   public void AV_setArtikel(byte[] userHash, String name, String neuerName, int bestand, double preis)
       throws ExceptionArtikelNichtGefunden, ExceptionArtikelUngültigerBestand {
-    // TODO Auto-generated method stub
+    out.println(REQUESTS.AVSETARTIKELDATAALL + sp + userHash + sp + name + sp + neuerName + sp + bestand + sp + preis);
 
   }
 
   @Override
   public Artikel AV_findArtikelByName(String name) throws ExceptionArtikelNichtGefunden {
-    // TODO Auto-generated method stub
-    return null;
+    Artikel artikel = null;
+    out.println(REQUESTS.AVFINDARTIKELBYNAME + sp + name);
+    String back = "";
+    try {
+      back = in.readLine();
+    } catch (IOException e) {
+    }
+    if (back.equals("fehler")) {
+      try {
+        ExceptionArtikelNichtGefunden e = (ExceptionArtikelNichtGefunden) ois.readObject();
+        throw e;
+      } catch (ClassNotFoundException | IOException e) {
+        e.printStackTrace();
+      }
+    } else {
+      try {
+        artikel = (Artikel) ois.readObject();
+      } catch (ClassNotFoundException | IOException e) {
+        e.printStackTrace();
+      }
+    }
+    return artikel;
   }
 
   @Override
   public Vector<Artikel> AV_getAlleArtikelList() {
-    // TODO Auto-generated method stub
-    return null;
+    Vector<Artikel> alleArtikel = new Vector<Artikel>();
+    out.println(REQUESTS.AVGETALLEARTIKELLIST);
+    try {
+      alleArtikel = (Vector<Artikel>) ois.readObject();
+    } catch (ClassNotFoundException | IOException e) {
+      e.printStackTrace();
+    }
+    return alleArtikel;
   }
+
+  // #endregion impl
+  // #region unimplemented
 
   @Override
   public String AV_ArtikelAusgeben(Vector<Artikel> list, boolean detailed, String leereNachicht) {
@@ -345,7 +433,7 @@ public class Eshop implements EshopInterface {
 
   @Override
   public String EV_logDisplay() {
-    // TODO Auto-generated method stub
+    out.println(REQUESTS.EVLOGDISPLAY);
     return null;
   }
 
@@ -376,24 +464,16 @@ public class Eshop implements EshopInterface {
   // #endregion implement
 
   @Override
-  public UserInterface createUserInterface() {
-    // TODO Auto-generated method stub
-
+  public String createUserInterface() {
     out.println(REQUESTS.UI);
 
     try {
-      switch (in.readLine()) {
-        case "CUI":
-          return new CUI(this);
-        case "GUI":
-          return new GUI(this);
-      }
-      return new CUI(this);
+      return in.readLine();
     } catch (IOException e) {
       // TODO Auto-generated catch block
       e.printStackTrace();
+      return null;
     }
-    return null;
   }
 
 }
